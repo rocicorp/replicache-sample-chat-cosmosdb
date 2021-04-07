@@ -5,11 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "format": "prettier --write './**/*.{js,jsx,json,ts,tsx,html,css,md}'"
   },
   "dependencies": {
     "@azure/cosmos": "^3.10.5",
     "next": "^10.0.0",
+    "prettier": "^2.2.1",
     "pusher": "^5.0.0",
     "pusher-js": "^7.0.3",
     "react": "17.0.1",

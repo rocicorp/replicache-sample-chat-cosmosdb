@@ -1,19 +1,19 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {Replicache} from 'replicache';
-import {useSubscribe} from 'replicache-react-util';
-import Pusher from 'pusher-js';
+import React, { useEffect, useRef, useState } from "react";
+import { Replicache } from "replicache";
+import { useSubscribe } from "replicache-react-util";
+import Pusher from "pusher-js";
 
 export default function Home() {
   const [rep, setRep] = useState(null);
 
   useEffect(async () => {
     const rep = new Replicache({
-      pushURL: '/api/replicache-push',
-      pullURL: '/api/replicache-pull',
+      pushURL: "/api/replicache-push",
+      pullURL: "/api/replicache-pull",
       // The .dev.wasm version is nice during development because it has
       // symbols and additional debugging info. The .wasm version is smaller
       // and faster.
-      wasmModule: '/replicache.dev.wasm',
+      wasmModule: "/replicache.dev.wasm",
     });
     registerMutators(rep);
     // TODO: https://github.com/rocicorp/replicache/issues/328
@@ -25,21 +25,21 @@ export default function Home() {
   return rep && <Chat rep={rep} />;
 }
 
-function Chat({rep}) {
+function Chat({ rep }) {
   const messages = useSubscribe(
     rep,
-    async tx => {
-      const list = await tx.scanAll({prefix: 'message/'});
-      list.sort(([, {order: a}], [, {order: b}]) => a - b);
+    async (tx) => {
+      const list = await tx.scanAll({ prefix: "message/" });
+      list.sort(([, { order: a }], [, { order: b }]) => a - b);
       return list;
     },
-    [],
+    []
   );
 
   const usernameRef = useRef();
   const contentRef = useRef();
 
-  const onSubmit = e => {
+  const onSubmit = (e) => {
     e.preventDefault();
     const last = messages.length && messages[messages.length - 1][1];
     const order = (last?.order ?? 0) + 1;
@@ -50,10 +50,10 @@ function Chat({rep}) {
       content: contentRef.current.value,
       order,
     });
-    usernameRef.current.value = '';
-    contentRef.current.value = '';
+    usernameRef.current.value = "";
+    contentRef.current.value = "";
   };
-  
+
   return (
     <div style={styles.container}>
       <form style={styles.form} onSubmit={onSubmit}>
@@ -67,7 +67,7 @@ function Chat({rep}) {
   );
 }
 
-function MessageList({messages}) {
+function MessageList({ messages }) {
   return messages.map(([k, v]) => {
     return (
       <div key={k}>
@@ -80,51 +80,49 @@ function MessageList({messages}) {
 
 const styles = {
   container: {
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
   },
   form: {
-    display: 'flex',
-    flexDirection: 'row',
+    display: "flex",
+    flexDirection: "row",
     flex: 0,
-    marginBottom: '1em',
+    marginBottom: "1em",
   },
   username: {
     flex: 0,
-    marginRight: '1em',
+    marginRight: "1em",
   },
   content: {
     flex: 1,
-    maxWidth: '30em',
-    margin: '0 1em',
+    maxWidth: "30em",
+    margin: "0 1em",
   },
 };
 
 function registerMutators(rep) {
   // TODO: https://github.com/rocicorp/replicache/issues/329
   rep.createMessage = rep.register(
-    'createMessage',
-    (tx, {id, from, content, order}) => {
+    "createMessage",
+    (tx, { id, from, content, order }) => {
       tx.put(`message/${id}`, {
         from,
         content,
         order,
       });
-    },
+    }
   );
 }
 
 function listen(rep) {
-  return;
-  console.log('listening');
   // Listen for pokes, and pull whenever we get one.
   Pusher.logToConsole = true;
   const pusher = new Pusher(process.env.NEXT_PUBLIC_REPLICHAT_PUSHER_KEY, {
     cluster: process.env.NEXT_PUBLIC_REPLICHAT_PUSHER_CLUSTER,
   });
-  const channel = pusher.subscribe('default');
-  channel.bind('poke', () => {
-    console.log('got poked');
+  const channel = pusher.subscribe("default");
+  channel.bind("poke", () => {
+    console.log("got poked");
     rep.pull();
   });
 }

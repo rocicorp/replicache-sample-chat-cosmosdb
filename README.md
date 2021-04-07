@@ -1,1 +1,5 @@
-This is a starter template for [Learn Next.js](https://nextjs.org/learn).
+This is a very simple chat application built on:
+
+* Replicache
+* Next.js
+* CosmosDB
