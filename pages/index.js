@@ -14,10 +14,8 @@ export default function Home() {
       // symbols and additional debugging info. The .wasm version is smaller
       // and faster.
       wasmModule: "/replicache.dev.wasm",
+      mutators,
     });
-    registerMutators(rep);
-    // TODO: https://github.com/rocicorp/replicache/issues/328
-    rep.pull();
     listen(rep);
     setRep(rep);
   }, []);
@@ -25,11 +23,14 @@ export default function Home() {
   return rep && <Chat rep={rep} />;
 }
 
+/**
+ * @param {{rep: Replicache<typeof mutators>}} props
+ */
 function Chat({ rep }) {
   const messages = useSubscribe(
     rep,
     async (tx) => {
-      const list = await tx.scanAll({ prefix: "message/" });
+      const list = await tx.scan({ prefix: "message/" }).entries().toArray();
       list.sort(([, { order: a }], [, { order: b }]) => a - b);
       return list;
     },
@@ -43,7 +44,7 @@ function Chat({ rep }) {
     e.preventDefault();
     const last = messages.length && messages[messages.length - 1][1];
     const order = (last?.order ?? 0) + 1;
-    rep.createMessage({
+    rep.mutate.createMessage({
       // Easy unique ID. In a real app use a GUID.
       id: Math.random().toString(32).substr(2),
       from: usernameRef.current.value,
@@ -100,19 +101,15 @@ const styles = {
   },
 };
 
-function registerMutators(rep) {
-  // TODO: https://github.com/rocicorp/replicache/issues/329
-  rep.createMessage = rep.register(
-    "createMessage",
-    (tx, { id, from, content, order }) => {
-      tx.put(`message/${id}`, {
-        from,
-        content,
-        order,
-      });
-    }
-  );
-}
+const mutators = {
+  async createMessage(tx, { id, from, content, order }) {
+    await tx.put(`message/${id}`, {
+      from,
+      content,
+      order,
+    });
+  },
+};
 
 function listen(rep) {
   // Listen for pokes, and pull whenever we get one.
