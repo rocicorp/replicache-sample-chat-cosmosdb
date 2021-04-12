@@ -1,5 +1,3 @@
-// @ts-check
-
 /** @type {{[name: string]: (args: any) => Promise<void>}} */
 const mutators = {
   __proto__: null,
@@ -7,13 +5,12 @@ const mutators = {
 };
 
 async function createMessage(message, version) {
-  await createDocument(
-    Object.assign({}, message, {
-      id: messageID(message.id),
-      version,
-      _partitionKey: "p1",
-    })
-  );
+  await createDocument({
+    ...message,
+    id: messageID(message.id),
+    version,
+    _partitionKey: "p1",
+  });
 }
 
 async function getMessages(lastVersion) {

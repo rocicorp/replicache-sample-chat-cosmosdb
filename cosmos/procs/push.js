@@ -1,6 +1,11 @@
 // @ts-check
 
 /**
+ * @typedef {import("replicache/out/replicache").JSONValue} JSONValue
+ * @typedef {{id: number; name: string, args: JSONValue}} Mutation
+ */
+
+/**
  * @param {string} clientID
  * @param {Mutation[]} mutations
  */
